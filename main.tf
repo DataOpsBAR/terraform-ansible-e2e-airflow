@@ -1,19 +1,3 @@
-#////////////////////////////////
-#  Variables
-#////////////////////////////////
-variable "web_app_name" {
-  type = string
-}
-variable "whitelist" {
-  type = list(string)
-}
-variable "web_instance_type" {
-  type = string
-}
-variable "web_key_name" {
-  type = string
-}
-
 #//////////////////////////////
 #       resouce ec2
 #//////////////////////////////
@@ -43,13 +27,44 @@ ansible-playbook airflow-playbook.yaml
   }
 }
 
-output "aws_instance_airflow" {
 
-  value       = aws_instance.airflow.public_ip
-  description = "airflow public ip "
-}
-output "aws_instance_airflow_dns" {
+resource "aws_security_group" "aws_jenkins" {
+  name        = "jenkins"
+  description = "Allow standard http and https ports inbount and everything outbound"
 
-  value       = aws_instance.airflow.public_dns
-  description = "airflow public dns "
+  ingress {
+    from_port   = 80
+    to_port     = 80
+    protocol    = "tcp"
+    cidr_blocks = var.whitelist
+  }
+
+  ingress {
+    from_port   = 8080
+    to_port     = 8080
+    protocol    = "tcp"
+    cidr_blocks = var.whitelist
+  }
+  ingress {
+    from_port   = 443
+    to_port     = 443
+    protocol    = "tcp"
+    cidr_blocks = var.whitelist
+  }
+  ingress {
+    from_port   = 22
+    to_port     = 22
+    protocol    = "tcp"
+    cidr_blocks = var.whitelist
+  }
+  egress {
+    from_port   = 0
+    to_port     = 0
+    protocol    = "-1"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
+  tags = {
+    "Terraform" : "true"
+  }
 }
